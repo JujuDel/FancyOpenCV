@@ -3,7 +3,8 @@ cmake_minimum_required(VERSION 2.8.12)
 PROJECT(ChromaKeying)
 SET(CMAKE_CXX_STANDARD 11)
 
-SET(OpenCV_DIR /home/hp/workfolder/OpenCV-Installation/installation/OpenCV-master/lib/cmake/opencv4)
+# Put your path here
+SET(OpenCV_DIR D:/opencv/build)
 
 if(MSVC)
 SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")

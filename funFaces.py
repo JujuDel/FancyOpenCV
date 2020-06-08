@@ -45,43 +45,27 @@ def renderFacePoints(im, landmarks, color=(0, 255, 0), radius=1):
         cv2.circle(im, (x, y), radius, color, -1)
 
 
-def displayText(frame, doSmile, doBugEye):
-    cv2.putText(
-        frame,
-        "Smiling 'S' ?",
-        (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 255, 0), 2)
-    if doSmile:
-        cv2.putText(
-            frame,
-            "ON",
-            (175, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 255, 0), 2)
-        yBug = 120
-    else:
-        cv2.putText(
-            frame,
-            "OFF",
-            (175, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 255), 2)
-        yBug = 80
+def displayText(frame, doBugEye):
 
     cv2.putText(
         frame,
         "BugEye 'E' ?",
-        (20, yBug), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 255, 0), 2)
+        (20, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 255, 0), 2)
     if doBugEye:
         cv2.putText(
             frame,
             "ON",
-            (175, yBug), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 255, 0), 2)
+            (175, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 255, 0), 2)
     else:
         cv2.putText(
             frame,
             "OFF",
-            (175, yBug), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 255), 2)
+            (175, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 255), 2)
 
     cv2.putText(
         frame,
         "Quit 'ESC'",
-        (20, yBug + 40), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 255, 0), 2)
+        (20, 70), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 255, 0), 2)
 
 
 
@@ -193,11 +177,9 @@ def main():
     # Create a VideoCapture object
     video = cv2.VideoCapture(0)
 
-    doSmile = False
     doBugEye = False
 
     try:
-
         while(True):
             # Grab a frame
             ret, frame = video.read()
@@ -211,40 +193,55 @@ def main():
             faces = faceDetector(imDlib, 0)
 
             # Display some text
-            displayText(frame, doSmile, doBugEye)
+            displayText(frame, doBugEye)
 
-            if len(faces) > 0:
-                landmarks = [(p.x, p.y) for p in landmarkDetector_68(imDlib, faces[0]).parts()]
+            # For every detected faces
+            for faceRect in faces:
+                # Get the facial landmarks
+                landmarks = [
+                        (p.x, p.y) for p in landmarkDetector_68(
+                                imDlib, faceRect).parts()
+                        ]
 
-                if doSmile:
-                    isSmiling, valueSmile = smileScore(landmarks)
-                    if isSmiling:
-                        cv2.putText(
-                            frame,
-                            "YES :)",
-                            (70, 80), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 255, 0), 2)
-                    else:
-                        cv2.putText(
-                            frame,
-                            "NO :/",
-                            (70, 80), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 255), 2)
+                # Get the surround box and draw it on the frame
+                top, right, bottom, left = (
+                        faceRect.top(),
+                        faceRect.right(),
+                        faceRect.bottom(),
+                        faceRect.left())
+                cv2.rectangle(
+                    frame,
+                    (left, top), (right, bottom),
+                    (0, 0, 255), 2)
+                cv2.rectangle(
+                    frame,
+                    (left, bottom - 20), (right, bottom),
+                    (0, 0, 255), cv2.FILLED)
+                font = cv2.FONT_HERSHEY_DUPLEX
+
+                # Detect if the person smiling
+                isSmiling, valueSmile = smileScore(landmarks)
+                if isSmiling:
+                    cv2.putText(
+                        frame, "Smiling :)",
+                        (left + 3, bottom - 3),
+                        font, 0.75, (255, 255, 255), 1)
+                else:
+                    cv2.putText(
+                        frame, "Not :/",
+                        (left + 3, bottom - 3),
+                        font, 0.75, (255, 255, 255), 1)
+
                 if doBugEye:
                     frame = bugEye(frame, landmarks)
 
-            else:
-                cv2.putText(
-                    frame,
-                    "No faces detected...",
-                    (70, 80), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 255, 0), 2)
-
+            # Display the image
             cv2.imshow("Fun face app", frame)
 
             # Key event
             key = cv2.waitKey(1)
             if key == 27:                             # ESC - quit the app
                 break
-            if key == ord('s') or key == ord('S'):    # S - smile
-                doSmile = not doSmile
             if key == ord('e') or key == ord('E'):    # E - eyes
                 doBugEye = not doBugEye
 
