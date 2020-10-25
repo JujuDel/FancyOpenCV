@@ -15,6 +15,18 @@ import sys
 import numpy as np
 ```
 
+### ASCII Art
+
+![gif](data/gifs/asciiArt.gif)
+
+Creates an ASCII art from the webcam images and display it into the console.
+
+#### How-to launch
+
+```bash
+> python asciiArt.py
+```
+
 ### Object Detection and tracking
 
 ![gif](data/gifs/detectionAndTracking.gif)
